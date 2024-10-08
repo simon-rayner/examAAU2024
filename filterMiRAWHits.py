@@ -55,8 +55,25 @@ len(df_miraw_results_filtered[df_miraw_results_filtered['Canonical']=='PITA: can
 # For example
 #   ENSG00000165699___TSC1_HUMAN___9-132891349-132896234n
 
-ax = df_miraw_results_filtered.hist(column='session_duration_seconds', bins=25, grid=False, figsize=(12,8), color='#86bf91', zorder=2, rwidth=0.9)
 
+# Now, we only want to count each gene once, so
+df_miraw_results_filtered.reset_index(drop=True, inplace=True)
+out = df_miraw_results_filtered.reset_index().groupby(['GeneName'])['index'].min().to_list()
+df_miraw_results_unique=df_miraw_results_filtered.iloc[out]
+df_miraw_results_unique['start'] = df_miraw_results_unique['GeneName'].str.split('-').str[1]
+# for the stop position there is an 'n' at the end that needs to be replaced
+df_miraw_results_unique['stop'] = df_miraw_results_unique['GeneName'].str.replace("n","").str.split('-').str[2]
+df_miraw_results_unique['length'] = df_miraw_results_unique['stop'].astype(int) - df_miraw_results_unique['start'].astype(int) + 1
+
+# reset the index so we can subset
+import matplotlib.pyplot as plt
+hist = df_miraw_results_unique['length'].hist(bins=8)
+plt.title('Histogram for Length Column')
+plt.xlabel('Length')
+plt.ylabel('Frequency')
+ax = df_miraw_results_unique.hist(column='length', bins=10, grid=False, figsize=(12,8), color='#86bf91', zorder=2, rwidth=0.9)
+ax
+#
 
 # Task 5: miRNA binding along the 3’UTR
 # Question 5.1: Plot the distribution of locations of the start positions for all 3’UTRs.
